@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 using System.Data;
 using System.Data.SqlClient;
 
-namespace ConvertToPajek
+namespace ConvertPajek
 {
     public class DatabaseService
     {
         public static SqlConnection connection = null;
-        public static bool Connect(string conn)
+        public bool Connect(string conn)
         {
             if (connection != null && connection.State == ConnectionState.Open)
                 return true;
@@ -27,17 +27,31 @@ namespace ConvertToPajek
             }
             return true;
         }
-        public static void Open()
+        public void Open()
         {
             if (connection != null && connection.State == ConnectionState.Closed)
                 connection.Open();
         }
-        public static void Close()
+        public void Close()
         {
             if (connection != null && connection.State == ConnectionState.Open)
                 connection.Close();
         }
-        //ToDo function
-        //get queryresult
+        //ToDo: get result function
+        public string getResult(string query)
+        {
+            SqlCommand cmd = new SqlCommand(query, connection);
+            if (connection != null && connection.State == ConnectionState.Closed)
+                connection.Open();
+            using (SqlDataReader oReader = cmd.ExecuteReader())
+            {
+                while (oReader.Read())
+                {
+                    return oReader["AuthorName"].ToString();
+                } 
+                connection.Close();
+            }
+            return "";
+        }
     }
 }
