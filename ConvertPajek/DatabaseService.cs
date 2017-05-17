@@ -47,7 +47,7 @@ namespace ConvertPajek
                 connection.Open();
             using (SqlDataReader oReader = cmd.ExecuteReader())
             {
-                string title = "Title|Summary|Venue|TitleDateNumber|NumberRealOfCitation|AuthorAndCoAuthor|Link\n"
+                string title = "Title|Summary|Venue|TitleDateNumber|NumberRealOfCitation|AuthorAndCoAuthor|Link";
                 File.AppendAllText(@"result.csv",  title + Environment.NewLine);
 
                 while (oReader.Read())
