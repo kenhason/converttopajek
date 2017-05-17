@@ -47,19 +47,35 @@ namespace ConvertPajek
                 connection.Open();
             using (SqlDataReader oReader = cmd.ExecuteReader())
             {
+                string title = "Title|Summary|Venue|TitleDateNumber|NumberRealOfCitation|AuthorAndCoAuthor|Link\n"
+                File.AppendAllText(@"result.csv",  title + Environment.NewLine);
+
                 while (oReader.Read())
                 {
-                    //write file
-                    //oReader["AuthorName"].ToString()
-                    //Title#Summary#Venue#TitleDateNumber#NumberRealOfCitation#AuthorAndCoAuthor#Link
-                    string text = oReader["Title"].ToString() + "|" +
-                                  oReader["Summary"].ToString() + "|" +
-                                  oReader["Venue"].ToString() + "|" +
-                                  oReader["TitleDateNumber"].ToString() + "|" +
-                                  oReader["NumberRealOfCitation"].ToString() + "|" +
-                                  oReader["AuthorAndCoAuthor"].ToString() + "|" +
-                                  oReader["Link"].ToString();
-                    File.AppendAllText(@"result.txt", text + Environment.NewLine);
+                    //replace \n
+                    string tmp = oReader["AuthorAndCoAuthor"].ToString().Replace('\n', ',');
+                    tmp = tmp.Substring(0, tmp.Length - 2);
+
+
+                    /*  Write to file with format 
+                     *  Title#Summary#Venue#TitleDateNumber#NumberRealOfCitation#AuthorAndCoAuthor#Link
+                     */
+                    //string text = oReader["Title"].ToString() + "|" +
+                    //              oReader["Summary"].ToString() + "|" +
+                    //              oReader["Venue"].ToString() + "|" +
+                    //              oReader["TitleDateNumber"].ToString() + "|" +
+                    //              oReader["NumberRealOfCitation"].ToString() + "|" +
+                    //              oReader["AuthorAndCoAuthor"].ToString() + "|" +
+                    //              oReader["Link"].ToString();
+                    string csv = string.Format("{0}|{1}|{2}|{3}|{4}|{5}|{6}",
+                                  oReader["Title"].ToString().Replace('\n', ' '),
+                                  oReader["Summary"].ToString().Replace('\n', ' '),
+                                  oReader["Venue"].ToString().Replace('\n', ' '),
+                                  oReader["TitleDateNumber"].ToString().Replace('\n', ' '),
+                                  oReader["NumberRealOfCitation"].ToString().Replace('\n', ' '),
+                                  tmp,
+                                  oReader["Link"].ToString().Replace('\n', ' '));
+                    File.AppendAllText(@"result.csv", csv + Environment.NewLine);
                 }
                 connection.Close();
             }
