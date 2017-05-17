@@ -30,7 +30,7 @@ namespace ConvertPajek
                 if (dbService.Connect(conn))
                 {
                     //ToDo: convert
-                    MessageBox.Show(dbService.getResult("select * from Author where id between 1 and 10;"), "Notification");
+                    MessageBox.Show(dbService.getResult("select * from Article where id between 1 and 10;"), "Notification");
 
                 }
             }      

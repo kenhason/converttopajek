@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Data;
 using System.Data.SqlClient;
+using System.IO;
 
 namespace ConvertPajek
 {
@@ -37,7 +38,8 @@ namespace ConvertPajek
             if (connection != null && connection.State == ConnectionState.Open)
                 connection.Close();
         }
-        //ToDo: get result function
+        
+        //ToDo: write file function
         public string getResult(string query)
         {
             SqlCommand cmd = new SqlCommand(query, connection);
@@ -47,11 +49,21 @@ namespace ConvertPajek
             {
                 while (oReader.Read())
                 {
-                    return oReader["AuthorName"].ToString();
-                } 
+                    //write file
+                    //oReader["AuthorName"].ToString()
+                    //Title#Summary#Venue#TitleDateNumber#NumberRealOfCitation#AuthorAndCoAuthor#Link
+                    string text = oReader["Title"].ToString() + "|" +
+                                  oReader["Summary"].ToString() + "|" +
+                                  oReader["Venue"].ToString() + "|" +
+                                  oReader["TitleDateNumber"].ToString() + "|" +
+                                  oReader["NumberRealOfCitation"].ToString() + "|" +
+                                  oReader["AuthorAndCoAuthor"].ToString() + "|" +
+                                  oReader["Link"].ToString();
+                    File.AppendAllText(@"result.txt", text + Environment.NewLine);
+                }
                 connection.Close();
             }
-            return "";
+            return "Write file was done.";
         }
     }
 }
