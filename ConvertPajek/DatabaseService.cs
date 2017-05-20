@@ -43,7 +43,7 @@ namespace ConvertPajek
                 connection.Open();
             using (SqlDataReader oReader = cmd.ExecuteReader())
             {
-                string title = "Title|Summary|Venue|TitleDateNumber|NumberRealOfCitation|AuthorAndCoAuthor|Link";
+                string title = "Id|Title|Summary|Venue|TitleDateNumber|NumberRealOfCitation|AuthorAndCoAuthor|Link";
                 File.AppendAllText(@"Article.csv",  title + Environment.NewLine);
 
                 while (oReader.Read())
@@ -52,7 +52,8 @@ namespace ConvertPajek
                     string tmp = oReader["AuthorAndCoAuthor"].ToString().Replace('\n', ',');
                     tmp = tmp.Substring(0, tmp.Length - 2);
 
-                    string csv = string.Format("{0}|{1}|{2}|{3}|{4}|{5}|{6}",
+                    string csv = string.Format("{0}|{1}|{2}|{3}|{4}|{5}|{6}|{7}",
+                                  oReader["Id"].ToString().Replace('\n', ' '),
                                   oReader["Title"].ToString().Replace('\n', ' '),
                                   oReader["Summary"].ToString().Replace('\n', ' '),
                                   oReader["Venue"].ToString().Replace('\n', ' '),
@@ -65,6 +66,7 @@ namespace ConvertPajek
                 connection.Close();
             }
         }
+
 
         public void exportArticleCitationToCSV(string query)
         {
@@ -104,13 +106,25 @@ namespace ConvertPajek
             var client = new GraphClient(new Uri("http://localhost:7474/db/data"), "neo4j", "neo4j");
             client.Connect();
             ClearDb(client);
+            //TODO: get exported file URL from Import MDF file (using Release directory)
             client.Cypher
-                .LoadCsv(new Uri("file:C:/Users/KEN/Documents/converttopajek/ConvertPajek/bin/Release/Article.csv"), "row", withHeaders: true, fieldTerminator: "|")
-                .Create("(:Article {title: row.Title, summary: row.Summary, venue: row.Venue, titleDateNumber: row.TitleDateNumber, numberRealOfCitation: row.NumberRealOfCitation, authorAndCoAuthor: row.AuthorAndCoAuthor, link: row.Link})")
+                .LoadCsv(new Uri("file:C:/Users/KEN/Documents/CSharpProjects/converttopajek/ConvertPajek/bin/Release/Article.csv"), "row", withHeaders: true, fieldTerminator: "|")
+                .Create("(:Article {id: row.Id, title: row.Title, summary: row.Summary, venue: row.Venue, titleDateNumber: row.TitleDateNumber, numberRealOfCitation: row.NumberRealOfCitation, authorAndCoAuthor: row.AuthorAndCoAuthor, link: row.Link})")
                 .ExecuteWithoutResults();
+            return true;
+        }
 
-            //TODO: load ArticleCitation.csv file to Neo4j
 
+        public bool importArticleCitation()
+        {
+            var client = new GraphClient(new Uri("http://localhost:7474/db/data"), "neo4j", "neo4j");
+            client.Connect();
+            client.Cypher
+                .LoadCsv(new Uri("file:C:/Users/KEN/Documents/CSharpProjects/converttopajek/ConvertPajek/bin/Release/ArticleCitation.csv"), "row", withHeaders: true, fieldTerminator: "|")
+                .Match("(article:Article{id:row.ArticleId}), (anotherArticle:Article{id:row.CitationId})")
+                .Where("article.id <> anotherArticle.id")
+                .Merge("(article)-[:CITES {link: row.Link}]-> (anotherArticle)")
+                .ExecuteWithoutResults();
             return true;
         }
 

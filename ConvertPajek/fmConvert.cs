@@ -30,9 +30,9 @@ namespace ConvertPajek
                 if (dbService.Connect(conn))
                 {
                     //ToDo: convert
-                    dbService.exportArticleToCSV("select * from Article where id between 1 and 10000;");
+                    dbService.exportArticleToCSV("select * from Article where id between 1 and 50;");
                     MessageBox.Show("Article.csv is writtern successfully", "Notification");
-                    dbService.exportArticleCitationToCSV("select * from ArticleCitation where id between 1 and 60000;");
+                    dbService.exportArticleCitationToCSV("select * from ArticleCitation where id between 1 and 50;");
                     MessageBox.Show("ArticleCitation.csv is writtern successfully", "Notification");
                 }
             }      
@@ -43,6 +43,14 @@ namespace ConvertPajek
         {
             Console.WriteLine("Connectig to Database Services...");
             if (dbService.importCSVToNeo4j())
+                MessageBox.Show("Import Successfully");
+            else
+                MessageBox.Show("Failed to import");
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            if (dbService.importArticleCitation())
                 MessageBox.Show("Import Successfully");
             else
                 MessageBox.Show("Failed to import");

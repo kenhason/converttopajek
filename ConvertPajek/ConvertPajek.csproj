@@ -93,7 +93,6 @@
     <Compile Include="fmConvert.Designer.cs">
       <DependentUpon>fmConvert.cs</DependentUpon>
     </Compile>
-    <Compile Include="Person.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="fmConvert.resx">
