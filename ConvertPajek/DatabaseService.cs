@@ -9,6 +9,14 @@ namespace ConvertPajek
     public class DatabaseService
     {
         public static SqlConnection connection = null;
+        public static string username = "neo4j";
+        public static string password = "neo4j";
+
+        public void setLogin(string id, string pw)
+        {
+            username = id;
+            password = pw;
+        }
         public bool Connect(string conn)
         {
             if (connection != null && connection.State == ConnectionState.Open)
@@ -100,8 +108,42 @@ namespace ConvertPajek
         * https://dzone.com/articles/neo4j-30-with-a-net-driver-neo4jclient 
         * https://github.com/Readify/Neo4jClient/issues/71
         */
-        public bool importCSVToNeo4j()
+        public bool importCSVToNeo4j(string fileName)
         {
+            /* 21-05-2017: Huy fixed something.
+             * 
+             */
+            Console.WriteLine("Connecting to Neo4j...");
+            var client = new GraphClient(new Uri("http://localhost:7474/db/data"), username, password);
+            client.Connect();
+            ClearDb(client);
+
+            if (fileName != "")
+            {
+                //ToDo: get username, password neo4j from app.
+                client.Cypher
+                .LoadCsv(new Uri("file:" + fileName), "row", withHeaders: true, fieldTerminator: "|")
+                .Create("(:Article {id: row.Id, title: row.Title, summary: row.Summary, venue: row.Venue, titleDateNumber: row.TitleDateNumber, numberRealOfCitation: row.NumberRealOfCitation, authorAndCoAuthor: row.AuthorAndCoAuthor, link: row.Link})")
+                .ExecuteWithoutResults();
+            }
+            else 
+            {
+                //ToDo: File doesn't exists
+                //Get URL from MDF
+                string path = Path.Combine(Environment.CurrentDirectory, @"Article.csv");
+
+                client.Cypher
+                 .LoadCsv(new Uri("file:" + path), "row", withHeaders: true, fieldTerminator: "|")
+                 .Create("(:Article {id: row.Id, title: row.Title, summary: row.Summary, venue: row.Venue, titleDateNumber: row.TitleDateNumber, numberRealOfCitation: row.NumberRealOfCitation, authorAndCoAuthor: row.AuthorAndCoAuthor, link: row.Link})")
+                 .ExecuteWithoutResults();
+            }
+
+            return true;
+
+            /* 20-05-2017: Kiet created and coded this function.
+             * 
+             */
+            /*
             Console.WriteLine("Connecting to Neo4j...");
             var client = new GraphClient(new Uri("http://localhost:7474/db/data"), "neo4j", "neo4j");
             client.Connect();
@@ -112,11 +154,43 @@ namespace ConvertPajek
                 .Create("(:Article {id: row.Id, title: row.Title, summary: row.Summary, venue: row.Venue, titleDateNumber: row.TitleDateNumber, numberRealOfCitation: row.NumberRealOfCitation, authorAndCoAuthor: row.AuthorAndCoAuthor, link: row.Link})")
                 .ExecuteWithoutResults();
             return true;
+            */
         }
 
 
-        public bool importArticleCitation()
+        public bool importArticleCitation(string fileName)
         {
+            /* 21-05-2017: Huy fixed something.
+             * 
+             */
+            var client = new GraphClient(new Uri("http://localhost:7474/db/data"), username, password);
+            client.Connect();
+
+            if (fileName != "")
+            {
+                //ToDo: get username, password neo4j from app.
+                client.Cypher
+                 .LoadCsv(new Uri("file:" + fileName), "row", withHeaders: true, fieldTerminator: "|")
+                 .Match("(article:Article{id:row.ArticleId}), (anotherArticle:Article{id:row.CitationId})")
+                 .Where("article.id <> anotherArticle.id")
+                 .Merge("(article)-[:CITES {link: row.Link}]-> (anotherArticle)")
+                 .ExecuteWithoutResults();
+            }
+            else
+            {
+                //Get URL from MDF
+                string path = Path.Combine(Environment.CurrentDirectory, @"ArticleCitation.csv");
+
+                client.Cypher
+                    .LoadCsv(new Uri("file:" + path), "row", withHeaders: true, fieldTerminator: "|")
+                    .Match("(article:Article{id:row.ArticleId}), (anotherArticle:Article{id:row.CitationId})")
+                    .Where("article.id <> anotherArticle.id")
+                    .Merge("(article)-[:CITES {link: row.Link}]-> (anotherArticle)")
+                    .ExecuteWithoutResults();
+            }
+            
+            return true;
+            /*
             var client = new GraphClient(new Uri("http://localhost:7474/db/data"), "neo4j", "neo4j");
             client.Connect();
             client.Cypher
@@ -126,6 +200,7 @@ namespace ConvertPajek
                 .Merge("(article)-[:CITES {link: row.Link}]-> (anotherArticle)")
                 .ExecuteWithoutResults();
             return true;
+            */
         }
 
         private void ClearDb(IGraphClient client)
